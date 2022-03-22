@@ -205,14 +205,15 @@ namespace Unity_CSharp
             while (true)
             {
                 JobType choice = ChooseClass(); // 다양한 범위의 컨텍스트에 적용하기 위해 가장 위에 선언                
-                if (choice != JobType.None)
+                if (choice == JobType.None)
                 {
-                    // 캐릭터 생성
-                    Player player;
-                    CreatePlayer(choice, out player);
-
-                    EnterGame(ref player);
+                    continue;                    
                 }
+
+                // 캐릭터 생성
+                Player player;
+                CreatePlayer(choice, out player);
+                EnterGame(ref player);
             }
         }
     }
