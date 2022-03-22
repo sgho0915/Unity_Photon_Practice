@@ -112,19 +112,66 @@ namespace Unity_CSharp
             }
         }
 
-        static void EnterField()
+        static void Fight(ref Player player, ref Monster monster)
         {
-            Console.WriteLine("필드에 접속했습니다.");
+            while (true)
+            {
+                // 플레이어가 몬스터 공격
+                monster.hp -= player.attack;
+                if (monster.hp <= 0)
+                {
+                    Console.WriteLine("승리했습니다.");
+                    Console.WriteLine($"남은 체역 : {player.hp}");
+                    break;
+                }
 
-            // 랜덤으로 1~3 몬스터 중 하나를 리스폰
-            Monster monster;
-            CreateRandomMonster(out monster);
-
-            Console.WriteLine("[1] 전투 모드로 돌입");
-            Console.WriteLine("[2] 일정 확률로 마을로 도망");
+                // 몬스터 반격
+                player.hp -= monster.attack;
+                if (player.hp <= 0)
+                {
+                    Console.WriteLine("패배했습니다.");
+                    break;
+                }
+            }
         }
 
-        static void EnterGame()
+        static void EnterField(ref Player player)
+        {
+            while (true)
+            {
+                Console.WriteLine("필드에 접속했습니다.");
+
+                // 랜덤으로 1~3 몬스터 중 하나를 리스폰
+                Monster monster;
+                CreateRandomMonster(out monster);
+
+                Console.WriteLine("[1] 전투 모드로 돌입");
+                Console.WriteLine("[2] 일정 확률로 마을로 도망");
+
+                string input = Console.ReadLine();
+                if (input == "1")
+                {
+                    Fight(ref player, ref monster);
+                }
+                else if (input == "2")
+                {
+                    // 33%
+                    Random rand = new Random();
+                    int randValue = rand.Next(0, 101);
+                    if (randValue <= 33)
+                    {
+                        Console.WriteLine("도망에 성공했습니다.");
+                        break;
+                    }
+                    else
+                    {
+                        Fight(ref player, ref monster);
+                    }
+                }
+            }
+        }
+
+        static void EnterGame(ref Player player)
         {
             while (true)
             {
@@ -135,7 +182,7 @@ namespace Unity_CSharp
                 string input = Console.ReadLine();
                 if (input == "1")
                 {
-                    EnterField();
+                    EnterField(ref player);
                 }
                 else if (input == "2")
                 {
@@ -164,7 +211,7 @@ namespace Unity_CSharp
                     Player player;
                     CreatePlayer(choice, out player);
 
-                    EnterGame();
+                    EnterGame(ref player);
                 }
             }
         }
