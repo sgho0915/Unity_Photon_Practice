@@ -8,6 +8,7 @@ using UnityEngine.UI;
 public class NetworkManager_Room : MonoBehaviourPunCallbacks
 {
     [Header("DisconnectPanel")] // 인스펙터에 오브젝트 항목별 헤더로 구분지음
+    public GameObject disconnectPannel;
     public InputField nickNameInput;
 
     [Header("LobbyPanel")]
@@ -37,9 +38,45 @@ public class NetworkManager_Room : MonoBehaviourPunCallbacks
     // 이전 목록 버튼 : -2,   다음 목록 버튼 : -1,    셀 숫자
     public void MyListClick(int num)
     {
-        if (num == -2) --currentPage;
-        else if (num == -1) ++currentPage;
+        if (num == -2) --currentPage; // 현재 페이지를 하나 줄임
+        else if (num == -1) ++currentPage; // 현재 페이지를 하나 늘림
         else PhotonNetwork.JoinRoom(myList[multiple + num].Name);
+        MyListRenewal(); // 방 입장 후 마이 리스트 갱신
+    }
+
+    void MyListRenewal()
+    {
+        // 최대 페이지 : 최대 페이지 수는 방 개수와 버튼 배열의 나머지가 0일 때 
+        maxPage = (myList.Count % cellBtn.Length == 0) ? myList.Count / cellBtn.Length : myList.Count / cellBtn.Length + 1;
+
+        // 이전, 다음 버튼 : 최대 페이지 수에 따라 다음, 이전 목록 버튼 활성화 여부
+        prevBtn.interactable = (currentPage <= 1) ? false : true;
+        nextBtn.interactable = (currentPage >= maxPage) ? false : true;
+
+        // 페이지에 맞는 리스트 대입
+        multiple = (currentPage - 1) * cellBtn.Length; // 각 페이지의 첫번째 인덱스를 대표하는 수
+        for(int i = 0; i < cellBtn.Length; i++)
+        {
+            cellBtn[i].interactable = (multiple + i < myList.Count) ? true : false;
+            cellBtn[i].transform.GetChild(0).GetComponent<Text>().text = (multiple + i < myList.Count) ? myList[multiple + i].Name : "";
+            cellBtn[i].transform.GetChild(1).GetComponent<Text>().text = (multiple + i < myList.Count) ? myList[multiple + i].PlayerCount + "/" + myList[multiple + i].MaxPlayers : "";
+        }
+    }
+
+    public override void OnRoomListUpdate(List<RoomInfo> roomList) // OnRoomListUpdate가 호출되면 roomList 매개변수를 RoomInfo 리스트 형식으로 받음
+    {
+        int roomCount = roomList.Count;
+        for(int i = 0; i < roomCount; i++)
+        {
+            if (!roomList[i].RemovedFromList)
+            {
+                if (!myList.Contains(roomList[i]))
+                    myList.Add(roomList[i]);
+                else myList[myList.IndexOf(roomList[i])] = roomList[i];
+            }
+            else if (myList.IndexOf(roomList[i]) != -1)
+                myList.RemoveAt(myList.IndexOf(roomList[i]));
+        }
         MyListRenewal();
     }
     #endregion
@@ -59,6 +96,7 @@ public class NetworkManager_Room : MonoBehaviourPunCallbacks
 
     public override void OnJoinedLobby() // 로비에 접속 시 자동으로 콜백되는 함수
     {
+        disconnectPannel.SetActive(false);
         lobbyPanel.SetActive(true);
         roomPanel.SetActive(false);
         PhotonNetwork.LocalPlayer.NickName = nickNameInput.text; // 닉네임 인풋필드에 입력한 텍스트를 서버에 접속한 로컬 플레이어의 닉네임으로 지정
@@ -70,6 +108,7 @@ public class NetworkManager_Room : MonoBehaviourPunCallbacks
 
     public override void OnDisconnected(DisconnectCause cause) // 서버와 연결이 끊기면 자동으로 콜백되는 함수
     {
+        disconnectPannel.SetActive(true);
         lobbyPanel.SetActive(false);
         roomPanel.SetActive(false);
     }
@@ -85,6 +124,7 @@ public class NetworkManager_Room : MonoBehaviourPunCallbacks
 
     public override void OnJoinedRoom() // 방에 참가했을 때 자동으로 콜백되는 함수
     {
+        lobbyPanel.SetActive(false);
         roomPanel.SetActive(true);
         RoomRenewal(); // 방 갱신
         chatInput.text = ""; // 채팅 인풋필드 초기화
