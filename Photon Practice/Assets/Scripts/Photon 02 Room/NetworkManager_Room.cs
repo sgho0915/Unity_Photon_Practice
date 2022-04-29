@@ -116,7 +116,7 @@ public class NetworkManager_Room : MonoBehaviourPunCallbacks
 
     #region 방
     // 방 제목이 공백이라면 랜덤한 숫자를 섞어 방 제목으로 생성하고 방 제목이 입력된 상태라면 입력한 방 제목으로 방 생성, 방 옵션으로 최대 접속 인원 설정
-    public void CreateRoom() => PhotonNetwork.CreateRoom(roomInput.text == "" ? "Room" + Random.Range(0, 100) : roomInput.text, new RoomOptions { MaxPlayers = 2 });
+    public void CreateRoom() => PhotonNetwork.CreateRoom(roomInput.text == "" ? "Room" + Random.Range(0, 100) : roomInput.text, new RoomOptions { MaxPlayers = 5 });
 
     public void JoinRandomRoom() => PhotonNetwork.JoinRandomRoom(); // 랜덤한 방으로 입장함
 
